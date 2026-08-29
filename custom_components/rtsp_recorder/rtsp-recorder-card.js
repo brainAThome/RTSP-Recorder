@@ -1092,8 +1092,8 @@ class RtspRecorderCard extends HTMLElement {
                 .fm-menu-header { padding: 20px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; background: #222; }
                 .fm-menu-title { font-size: 1.25em; font-weight: 500; color: #fff; }
                 .fm-menu-close { cursor: pointer; color: #888; }
-                .fm-tabs { display: flex; flex-wrap: wrap; background: #111; border-bottom: 1px solid #333; }
-                .fm-tab { flex: 1 1 auto; min-width: 0; text-align: center; padding: 16px 10px; cursor: pointer; color: #888; border-bottom: 2px solid transparent; text-transform: uppercase; }
+                .fm-tabs { display: flex; overflow-x: auto; background: #111; border-bottom: 1px solid #333; }
+                .fm-tab { flex: 1 1 auto; min-width: 0; text-align: center; padding: 14px 4px; cursor: pointer; color: #888; border-bottom: 2px solid transparent; text-transform: uppercase; font-size: 0.8em; white-space: nowrap; }
                 .fm-tab.active { color: var(--primary-color); border-bottom-color: var(--primary-color); background: #1a1a1a; }
                 .fm-tab.hidden { display: none; }
                 .fm-menu-content { padding: 30px; min-height: 300px; overflow-y: auto; }
