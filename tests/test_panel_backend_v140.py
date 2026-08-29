@@ -119,7 +119,44 @@ class TestCameraBaseFields:
             "snapshot_delay": 3,
             "rtsp_url": "rtsp://cam",
             "camera_retention": 12.0,
+            # Ohne gespeicherten enabled_-Key gilt die Kamera als aktiv.
+            "camera_enabled": True,
         }
+
+    def test_read_base_reports_disabled_camera(self):
+        cfg = {"duration_Tuer": 60, "enabled_Tuer": False}
+        assert cs.read_camera_base(cfg, "Tuer")["camera_enabled"] is False
+
+    def test_enabled_default_true_without_key(self):
+        assert cs.is_camera_enabled({}, "Garten vorne") is True
+        assert cs.is_camera_enabled_suffix({}, "Garten_vorne") is True
+
+    def test_enabled_false_only_for_explicit_false(self):
+        assert cs.is_camera_enabled({"enabled_Garten_vorne": False}, "Garten vorne") is False
+        # Truthy-Werte gelten weiterhin als aktiv
+        assert cs.is_camera_enabled({"enabled_Garten_vorne": True}, "Garten vorne") is True
+
+    def test_set_base_enabled_true_removes_key(self):
+        data, options = {"enabled_Tuer": False}, {"enabled_Tuer": False}
+        touched = cs.set_camera_base(data, options, "Tuer", {"camera_enabled": True})
+        assert "enabled_Tuer" in touched
+        assert "enabled_Tuer" not in data and "enabled_Tuer" not in options
+
+    def test_set_base_enabled_false_persists(self):
+        data, options = {}, {}
+        cs.set_camera_base(data, options, "Tuer", {"camera_enabled": False})
+        assert data["enabled_Tuer"] is False and options["enabled_Tuer"] is False
+
+    def test_delete_camera_removes_enabled_key(self):
+        data = {"duration_Tuer": 60, "enabled_Tuer": False}
+        options = dict(data)
+        removed = cs.delete_camera(data, options, "Tuer")
+        assert "enabled_Tuer" in removed
+        assert "enabled_Tuer" not in data and "enabled_Tuer" not in options
+
+    def test_enabled_key_alone_does_not_create_camera(self):
+        # Ein uebriggebliebener enabled_-Key darf keine geloeschte Kamera wiederbeleben.
+        assert cs.list_cameras({"enabled_Geist"}) == []
 
     def test_read_base_legacy_single_sensor_fallback(self):
         cfg = {"sensor_Tuer": "binary_sensor.legacy", "duration_Tuer": 60}

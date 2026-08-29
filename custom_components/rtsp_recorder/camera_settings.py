@@ -144,7 +144,7 @@ CAMERA_BASE_PREFIXES: tuple[str, ...] = (
     "retention_hours_",
 )
 
-ALL_CAMERA_PREFIXES: tuple[str, ...] = CAMERA_BASE_PREFIXES + tuple(
+ALL_CAMERA_PREFIXES: tuple[str, ...] = CAMERA_BASE_PREFIXES + ("enabled_",) + tuple(
     f.prefix for f in PER_CAMERA_FIELDS
 )
 
@@ -166,6 +166,9 @@ CAMERA_BASE_FIELDS: dict[str, tuple[str, str]] = {
     "snapshot_delay": ("snapshot_delay_", "int"),
     "rtsp_url": ("rtsp_url_", "str"),
     "camera_retention": ("retention_hours_", "float"),
+    # Abwesenheit des Keys == Kamera aktiv. Nur der Aus-Zustand wird gespeichert,
+    # damit bestehende Konfigurationen ohne Migration aktiv bleiben.
+    "camera_enabled": ("enabled_", "bool"),
 }
 
 
@@ -181,7 +184,24 @@ def read_camera_base(config: dict, camera: str) -> dict[str, Any]:
         legacy = config.get(f"sensor_{safe}")
         if legacy:
             out["motion_sensors"] = [legacy] if isinstance(legacy, str) else legacy
+    # Immer einen expliziten Wert liefern, damit die Karte den Schalter korrekt
+    # vorbelegt: fehlender Key == aktiv.
+    out["camera_enabled"] = is_camera_enabled_suffix(config, safe)
     return out
+
+
+def is_camera_enabled_suffix(config: dict, suffix: str) -> bool:
+    """True, solange die Kamera nicht ausdruecklich deaktiviert wurde.
+
+    ``suffix`` ist der bereits normalisierte Key-Suffix (z. B. ``Garten_vorne``),
+    wie ihn die Auto-Record-Registrierung aus den Config-Keys ableitet.
+    """
+    return config.get(f"enabled_{suffix}", True) is not False
+
+
+def is_camera_enabled(config: dict, camera: str) -> bool:
+    """True, solange die Kamera nicht ausdruecklich deaktiviert wurde."""
+    return is_camera_enabled_suffix(config, camera_key(camera))
 
 
 def set_camera_base(data: dict, options: dict, camera: str, fields: dict) -> list[str]:
@@ -213,6 +233,12 @@ def set_camera_base(data: dict, options: dict, camera: str, fields: dict) -> lis
                     store[key] = fv
                 else:
                     store.pop(key, None)
+            elif kind == "bool":
+                # True == Default (aktiv) -> Key entfernen; nur False wird persistiert.
+                if value:
+                    store.pop(key, None)
+                else:
+                    store[key] = False
         touched.append(key)
     return touched
 
