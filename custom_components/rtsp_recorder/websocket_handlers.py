@@ -912,6 +912,7 @@ def register_websocket_handlers(
         vol.Optional("snapshot_delay"): vol.Any(int, float),
         vol.Optional("rtsp_url"): str,
         vol.Optional("camera_retention"): vol.Any(int, float),
+        vol.Optional("camera_enabled"): bool,
     })
     @websocket_api.async_response
     @limit("rtsp_recorder/set_camera_base")

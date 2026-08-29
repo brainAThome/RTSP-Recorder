@@ -5658,6 +5658,7 @@ class RtspRecorderCard extends HTMLElement {
     }
     _pcBaseFields() {
         return [
+            { key: "camera_enabled", label: "🎥 Auto-Aufnahme bei Bewegung", kind: "bool" },
             { key: "motion_sensors", label: "🏃 Auslöser-Sensoren (Komma-getrennt)", kind: "list" },
             { key: "recording_duration", label: "⏱️ Aufnahmedauer (Sek)", kind: "int", min: 10, max: 600, step: 10 },
             { key: "snapshot_delay", label: "📸 Snapshot-Verzögerung (Sek)", kind: "int", min: 0, max: 60, step: 1 },

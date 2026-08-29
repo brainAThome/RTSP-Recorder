@@ -33,6 +33,7 @@ from homeassistant.helpers.event import async_track_state_change_event
 # Internal modules
 from .retention import cleanup_recordings, cleanup_analysis_data
 from .analysis import detect_available_devices
+from . import camera_settings as _cam_settings
 
 # Modularized Imports
 from .const import (
@@ -655,6 +656,9 @@ async def async_setup_entry(hass, entry: ConfigEntry) -> bool:
                 if key.startswith("sensors_"):
                     # New format: value is a list of entity IDs
                     camera_target = key.replace("sensors_", "")
+                    if not _cam_settings.is_camera_enabled_suffix(config_data, camera_target):
+                        log_to_file(f"Auto-Record uebersprungen: {camera_target} ist deaktiviert")
+                        continue
                     motion_entities = value if isinstance(value, list) else [value]
                     
                     duration_key = f"duration_{camera_target}"
@@ -678,6 +682,9 @@ async def async_setup_entry(hass, entry: ConfigEntry) -> bool:
                     camera_target = key.replace("sensor_", "")
                     # Skip if new format already exists for this camera
                     if f"sensors_{camera_target}" in config_data:
+                        continue
+                    if not _cam_settings.is_camera_enabled_suffix(config_data, camera_target):
+                        log_to_file(f"Auto-Record uebersprungen (legacy): {camera_target} ist deaktiviert")
                         continue
                         
                     motion_entity = value
